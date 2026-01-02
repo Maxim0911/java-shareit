@@ -1,0 +1,120 @@
+package ru.practicum.shareit.user;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.ConflictException;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
+import ru.practicum.shareit.user.repository.UserRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+    private final UserRepository userRepository;
+
+    @Override
+    public UserDto createUser(UserDto userDto) {
+        // Валидация для создания
+        validateUserForCreation(userDto);
+
+        // Проверка уникальности email
+        userRepository.findByEmail(userDto.getEmail())
+                .ifPresent(user -> {
+                    throw new ConflictException("Email already exists: " + userDto.getEmail());
+                });
+
+        User user = UserMapper.toUser(userDto);
+        User savedUser = userRepository.save(user);
+        return UserMapper.toUserDto(savedUser);
+    }
+
+    @Override
+    public UserDto getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
+        return UserMapper.toUserDto(user);
+    }
+
+    @Override
+    public List<UserDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(UserMapper::toUserDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public UserDto updateUser(Long userId, UserDto userDto) {
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
+
+        boolean updated = false;
+
+        // Обновляем name, если пришло
+        if (userDto.getName() != null) {
+            if (userDto.getName().isBlank()) {
+                throw new ValidationException("Name cannot be blank");
+            }
+            existingUser.setName(userDto.getName());
+            updated = true;
+        }
+
+        // Обновляем email, если пришло
+        if (userDto.getEmail() != null) {
+            if (userDto.getEmail().isBlank()) {
+                throw new ValidationException("Email cannot be blank");
+            }
+
+            // Проверяем формат email
+            if (!isValidEmail(userDto.getEmail())) {
+                throw new ValidationException("Invalid email format");
+            }
+
+            // Проверяем, что новый email уникален
+            if (!userDto.getEmail().equals(existingUser.getEmail())) {
+                userRepository.findByEmail(userDto.getEmail())
+                        .ifPresent(user -> {
+                            throw new ConflictException("Email already exists: " + userDto.getEmail());
+                        });
+                existingUser.setEmail(userDto.getEmail());
+                updated = true;
+            }
+        }
+
+        // Если ничего не обновлено, возвращаем текущего пользователя
+        if (!updated) {
+            return UserMapper.toUserDto(existingUser);
+        }
+
+        User updatedUser = userRepository.save(existingUser);
+        return UserMapper.toUserDto(updatedUser);
+    }
+
+    @Override
+    public void deleteUser(Long userId) {
+        userRepository.deleteById(userId);
+    }
+
+    private void validateUserForCreation(UserDto userDto) {
+        if (userDto.getName() == null || userDto.getName().isBlank()) {
+            throw new ValidationException("Name cannot be blank");
+        }
+
+        if (userDto.getEmail() == null || userDto.getEmail().isBlank()) {
+            throw new ValidationException("Email cannot be blank");
+        }
+
+        if (!isValidEmail(userDto.getEmail())) {
+            throw new ValidationException("Invalid email format");
+        }
+    }
+
+    private boolean isValidEmail(String email) {
+        if (email == null) return false;
+        return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    }
+}
