@@ -55,6 +55,15 @@ public class GlobalExceptionHandler {
         return new ErrorResponse("Internal server error: " + e.getMessage());
     }
 
-    public record ErrorResponse(String error) {
+    public static class ErrorResponse {
+        private final String error;
+
+        public ErrorResponse(String error) {
+            this.error = error;
+        }
+
+        public String getError() {
+            return error;
+        }
     }
 }

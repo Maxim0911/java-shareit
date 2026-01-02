@@ -19,10 +19,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto createUser(UserDto userDto) {
-        // Валидация для создания
         validateUserForCreation(userDto);
 
-        // Проверка уникальности email
         userRepository.findByEmail(userDto.getEmail())
                 .ifPresent(user -> {
                     throw new ConflictException("Email already exists: " + userDto.getEmail());
@@ -54,7 +52,6 @@ public class UserServiceImpl implements UserService {
 
         boolean updated = false;
 
-        // Обновляем name, если пришло
         if (userDto.getName() != null) {
             if (userDto.getName().isBlank()) {
                 throw new ValidationException("Name cannot be blank");
@@ -63,18 +60,15 @@ public class UserServiceImpl implements UserService {
             updated = true;
         }
 
-        // Обновляем email, если пришло
         if (userDto.getEmail() != null) {
             if (userDto.getEmail().isBlank()) {
                 throw new ValidationException("Email cannot be blank");
             }
 
-            // Проверяем формат email
             if (!isValidEmail(userDto.getEmail())) {
                 throw new ValidationException("Invalid email format");
             }
 
-            // Проверяем, что новый email уникален
             if (!userDto.getEmail().equals(existingUser.getEmail())) {
                 userRepository.findByEmail(userDto.getEmail())
                         .ifPresent(user -> {
@@ -85,7 +79,6 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        // Если ничего не обновлено, возвращаем текущего пользователя
         if (!updated) {
             return UserMapper.toUserDto(existingUser);
         }
