@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/shareit  # База должна существовать
+    username: postgres
+    password: 0911
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # Ключевая настройка!
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # Дополнительные настройки
+        default_schema: public
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        temp:
+          use_jdbc_metadata_defaults: false
+
+  # Закомментируйте schema.sql, если используете Hibernate
+  # sql:
+  #   init:
+  #     mode: always
+  #     schema-locations: classpath:schema.sql
