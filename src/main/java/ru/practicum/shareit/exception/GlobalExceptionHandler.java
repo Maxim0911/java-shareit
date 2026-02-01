@@ -49,6 +49,13 @@ public class GlobalExceptionHandler {
         return new ErrorResponse("Missing required header: " + e.getHeaderName());
     }
 
+    // Добавляем обработку исключения для бронирований
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleBookingException(BookingException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleException(Exception e) {
@@ -56,7 +63,7 @@ public class GlobalExceptionHandler {
     }
 
     public static class ErrorResponse {
-        private final String error;
+        private String error;
 
         public ErrorResponse(String error) {
             this.error = error;
@@ -64,6 +71,23 @@ public class GlobalExceptionHandler {
 
         public String getError() {
             return error;
+        }
+
+        public void setError(String error) {
+            this.error = error;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ErrorResponse that = (ErrorResponse) o;
+            return Objects.equals(error, that.error);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(error);
         }
     }
 }
