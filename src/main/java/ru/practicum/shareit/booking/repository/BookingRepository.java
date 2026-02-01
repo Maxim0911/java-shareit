@@ -87,4 +87,49 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                                         Long itemId,
                                                                         BookingStatus status,
                                                                         LocalDateTime currentTime);
+
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id IN :itemIds " +
+            "AND b.status = 'APPROVED' " +
+            "AND b.end < :now " +
+            "AND b.id IN (" +
+            "   SELECT MAX(b2.id) FROM Booking b2 " +
+            "   WHERE b2.item.id = b.item.id " +
+            "   AND b2.status = 'APPROVED' " +
+            "   AND b2.end < :now " +
+            "   GROUP BY b2.item.id" +
+            ")")
+    List<Booking> findLastBookingsForItems(@Param("itemIds") List<Long> itemIds,
+                                           @Param("now") LocalDateTime now);
+
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id IN :itemIds " +
+            "AND b.status = 'APPROVED' " +
+            "AND b.start > :now " +
+            "AND b.id IN (" +
+            "   SELECT MIN(b2.id) FROM Booking b2 " +
+            "   WHERE b2.item.id = b.item.id " +
+            "   AND b2.status = 'APPROVED' " +
+            "   AND b2.start > :now " +
+            "   GROUP BY b2.item.id" +
+            ")")
+    List<Booking> findNextBookingsForItems(@Param("itemIds") List<Long> itemIds,
+                                           @Param("now") LocalDateTime now);
+
+
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id = :itemId " +
+            "AND b.status = 'APPROVED' " +
+            "AND b.end < :now " +
+            "ORDER BY b.end DESC")
+    Optional<Booking> findLastBookingForItem(@Param("itemId") Long itemId,
+                                             @Param("now") LocalDateTime now);
+
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id = :itemId " +
+            "AND b.status = 'APPROVED' " +
+            "AND b.start > :now " +
+            "ORDER BY b.start ASC")
+    Optional<Booking> findNextBookingForItem(@Param("itemId") Long itemId,
+                                             @Param("now") LocalDateTime now);
 }

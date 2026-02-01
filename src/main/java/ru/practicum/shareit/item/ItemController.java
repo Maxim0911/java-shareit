@@ -47,7 +47,6 @@ public class ItemController {
 
         ItemDto itemDto = itemService.getItemById(itemId);
 
-        // Если пользователь не владелец вещи, скрываем информацию о бронированиях
         if (userId == null || !userId.equals(itemDto.getOwnerId())) {
             itemDto.setLastBooking(null);
             itemDto.setNextBooking(null);

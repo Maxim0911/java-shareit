@@ -29,7 +29,7 @@ public class ItemMapper {
     public static ItemDto toItemDto(Item item,
                                     Booking lastBooking,
                                     Booking nextBooking,
-                                    List<CommentResponseDto> comments) { // ИЗМЕНИЛ тип
+                                    List<CommentResponseDto> comments) {
         if (item == null) {
             return null;
         }
