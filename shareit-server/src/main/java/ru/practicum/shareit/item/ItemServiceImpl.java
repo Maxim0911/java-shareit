@@ -342,10 +342,6 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() == null) {
             throw new ValidationException("Available status cannot be null");
         }
-
-        if (itemDto.getRequestId() != null) {
-            
-        }
     }
 
     public LocalDateTime getCurrentTime() {
