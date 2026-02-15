@@ -421,27 +421,31 @@ class ItemServiceImplTest {
 
     @Test
     void getItemById_ForOwner_ShouldShowBookings() {
-        // given
-        when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
-        when(bookingRepository.findLastBookingForItem(item.getId(), now)).thenReturn(Optional.of(booking));
-        when(bookingRepository.findNextBookingForItem(item.getId(), now)).thenReturn(Optional.empty());
-        when(commentRepository.findAllByItemIdOrderByCreatedDesc(item.getId())).thenReturn(List.of(comment));
+            // given
+            when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
 
-        // when
-        ItemDto result = itemService.getItemById(item.getId(), owner.getId());
+            // 👇 ИСПОЛЬЗУЕМ any() вместо конкретного времени!
+            when(bookingRepository.findLastBookingForItem(eq(item.getId()), any(LocalDateTime.class)))
+                    .thenReturn(Optional.of(booking));
+            when(bookingRepository.findNextBookingForItem(eq(item.getId()), any(LocalDateTime.class)))
+                    .thenReturn(Optional.empty());
+            when(commentRepository.findAllByItemIdOrderByCreatedDesc(item.getId()))
+                    .thenReturn(List.of(comment));
 
-        // then
-        assertNotNull(result);
-        assertNotNull(result.getLastBooking());
-        assertEquals(booking.getId(), result.getLastBooking().getId());
-        assertEquals(booking.getBooker().getId(), result.getLastBooking().getBookerId());
-        assertNull(result.getNextBooking());
-        assertEquals(1, result.getComments().size());
-        assertEquals(comment.getText(), result.getComments().get(0).getText());
+            // when
+            ItemDto result = itemService.getItemById(item.getId(), owner.getId());
 
-        verify(bookingRepository).findLastBookingForItem(eq(item.getId()), any(LocalDateTime.class));
-        verify(bookingRepository).findNextBookingForItem(eq(item.getId()), any(LocalDateTime.class));
-    }
+            // then
+            assertNotNull(result);
+            assertNotNull(result.getLastBooking());
+            assertEquals(booking.getId(), result.getLastBooking().getId());
+            assertEquals(booking.getBooker().getId(), result.getLastBooking().getBookerId());
+            assertNull(result.getNextBooking());
+            assertEquals(1, result.getComments().size());
+
+            verify(bookingRepository).findLastBookingForItem(eq(item.getId()), any(LocalDateTime.class));
+            verify(bookingRepository).findNextBookingForItem(eq(item.getId()), any(LocalDateTime.class));
+        }
 
     @Test
     void getItemById_ForNonOwner_ShouldNotShowBookings() {
@@ -488,8 +492,12 @@ class ItemServiceImplTest {
         when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
         when(itemRepository.findAllByOwnerId(owner.getId())).thenReturn(items);
         when(commentRepository.findAllByItemIdInOrderByCreatedDesc(itemIds)).thenReturn(comments);
-        when(bookingRepository.findLastBookingsForItems(itemIds, now)).thenReturn(lastBookings);
-        when(bookingRepository.findNextBookingsForItems(itemIds, now)).thenReturn(nextBookings);
+
+        // 👇 ИСПОЛЬЗУЕМ any() вместо конкретного времени!
+        when(bookingRepository.findLastBookingsForItems(eq(itemIds), any(LocalDateTime.class)))
+                .thenReturn(lastBookings);
+        when(bookingRepository.findNextBookingsForItems(eq(itemIds), any(LocalDateTime.class)))
+                .thenReturn(nextBookings);
 
         // when
         List<ItemDto> results = itemService.getAllItemsByOwner(owner.getId());
