@@ -165,8 +165,11 @@ public class ItemServiceImpl implements ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Item not found with id: " + itemId));
 
+        LocalDateTime now = LocalDateTime.now().plusSeconds(1);
+
         boolean hasBooked = bookingRepository.findFirstByBookerIdAndItemIdAndStatusAndEndBefore(
-                userId, itemId, BookingStatus.APPROVED, LocalDateTime.now()).isPresent();
+                userId, itemId, BookingStatus.APPROVED, now
+        ).isPresent();
 
         if (!hasBooked) {
             throw new ValidationException("Only users who have booked this item can leave comments");

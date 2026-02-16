@@ -72,3 +72,5 @@ CREATE INDEX IF NOT EXISTS idx_items_request_id ON items(request_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_item_id ON bookings(item_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_booker_id ON bookings(booker_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
+CREATE INDEX IF NOT EXISTS idx_bookings_booker_item_status_end
+ON bookings(booker_id, item_id, status, end_date);
